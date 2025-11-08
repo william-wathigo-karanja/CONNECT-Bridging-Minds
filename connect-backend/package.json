@@ -1,18 +1,21 @@
 {
   "name": "connect-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for CONNECT mental health platform",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "dev": "nodemon index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/material": "^7.3.5",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
-    "express": "^4.19.2",
-    "mongoose": "^8.5.1"
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

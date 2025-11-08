@@ -1,72 +1,137 @@
 import React, { useState } from 'react';
-import { TextField, Button, MenuItem, Typography, Container, Box } from '@mui/material';
+import './App.css';
 
-const Register = () => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [type, setType] = useState('client');
-    const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
+const Register = ({ onLogin }) => {
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        type: 'client'
+    });
+    const [message, setMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleChange = (e) => {
+        setFormData({
+            ...formData,
+            [e.target.name]: e.target.value
+        });
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setIsLoading(true);
+        setMessage('');
+
         try {
-            const response = await fetch('http://localhost:5000/register', {
+            const response = await fetch('http://localhost:5000/api/register', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, email, type })
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
             });
-            if (!response.ok) throw new Error('Registration failed');
-            const message = await response.text();
-            setSuccess(message);
-            setError('');
-        } catch (err) {
-            setError(err.message);
-            setSuccess('');
+
+            const data = await response.json();
+
+            if (data.success) {
+                setMessage(`✅ ${data.message} Welcome, ${data.user.name}!`);
+                // Call the onLogin callback with user data
+                if (onLogin) {
+                    onLogin(data.user);
+                }
+                // Reset form
+                setFormData({ name: '', email: '', type: 'client' });
+            } else {
+                setMessage(`❌ ${data.message}`);
+            }
+        } catch (error) {
+            setMessage('❌ Registration failed. Please try again.');
+            console.error('Registration error:', error);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <Container>
-            <Box sx={{ mt: 4 }}>
-                <Typography variant="h4" component="h2">Register</Typography>
-                <form onSubmit={handleSubmit}>
-                    <TextField
-                        label="Name"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
+        <div className="register-container">
+            <h2>Register</h2>
+            <form onSubmit={handleSubmit} className="register-form">
+                <div className="form-group">
+                    <label htmlFor="name">Name *</label>
+                    <input
+                        type="text"
+                        id="name"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleChange}
                         required
-                        fullWidth
-                        margin="normal"
+                        placeholder="Enter your full name"
                     />
-                    <TextField
-                        label="Email"
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="email">Email *</label>
+                    <input
                         type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        id="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
                         required
-                        fullWidth
-                        margin="normal"
+                        placeholder="Enter your email address"
                     />
-                    <TextField
-                        select
-                        label="I am a"
-                        value={type}
-                        onChange={(e) => setType(e.target.value)}
-                        fullWidth
-                        margin="normal"
+                </div>
+
+                <div className="form-group">
+                    <label htmlFor="type">I am a *</label>
+                    <select
+                        id="type"
+                        name="type"
+                        value={formData.type}
+                        onChange={handleChange}
                     >
-                        <MenuItem value="client">Client</MenuItem>
-                        <MenuItem value="therapist">Therapist</MenuItem>
-                    </TextField>
-                    <Button type="submit" variant="contained" color="primary" fullWidth sx={{ mt: 2 }}>
-                        Register
-                    </Button>
-                    {error && <Typography color="error" sx={{ mt: 2 }}>{error}</Typography>}
-                    {success && <Typography color="success" sx={{ mt: 2 }}>{success}</Typography>}
-                </form>
-            </Box>
-        </Container>
+                        <option value="client">Client</option>
+                        <option value="therapist">Therapist</option>
+                    </select>
+                </div>
+
+                <button 
+                    type="submit" 
+                    className="submit-btn"
+                    disabled={isLoading}
+                >
+                    {isLoading ? 'Registering...' : 'REGISTER'}
+                </button>
+
+                {message && (
+                    <div className={`message ${message.includes('✅') ? 'success' : 'error'}`}>
+                        {message}
+                    </div>
+                )}
+            </form>
+
+            <div className="register-info">
+                <h3>Why Register?</h3>
+                <div className="benefits">
+                    <div className="benefit">
+                        <strong>For Clients:</strong>
+                        <ul>
+                            <li>✓ Find verified therapists</li>
+                            <li>✓ Schedule appointments easily</li>
+                            <li>✓ Secure and private sessions</li>
+                        </ul>
+                    </div>
+                    <div className="benefit">
+                        <strong>For Therapists:</strong>
+                        <ul>
+                            <li>✓ Reach more clients</li>
+                            <li>✓ Manage your schedule</li>
+                            <li>✓ Grow your practice</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 };
 
